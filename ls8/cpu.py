@@ -7,6 +7,8 @@ LDI = 0b10000010
 PRN = 0b01000111
 POP = 0b01000110
 PUSH = 0b01000101
+CALL = 0b01010000
+RET = 0b00010001
 
 ADD = 0b10100000
 SUB = 0b10100001
@@ -46,6 +48,8 @@ class CPU:
             PRN: self.prn,
             POP: self.pop,
             PUSH: self.push,
+            CALL: self.call,
+            RET: self.ret,
 
             ADD: self.alu,
             SUB: self.alu,
@@ -82,6 +86,15 @@ class CPU:
     def push(self, op_a, op_b=None):
         self.reg[SP] -= 1
         self.ram_write(self.reg[SP], self.reg[op_a])
+
+    def call(self, op_a, op_b=None):
+        self.reg[SP] -= 1
+        self.ram_write(self.reg[SP], self.PC + 2)
+        self.PC = self.reg[op_a]
+
+    def ret(self, op_a=None, op_b=None):
+        self.PC = self.ram_read(self.reg[SP])
+        self.reg[SP] += 1
 
     def ram_read(self, address):
         return self.ram[address]
@@ -171,6 +184,8 @@ class CPU:
 
             num_operands = ir >> 6
 
+            PC_set = (ir >> 4) & 1
+
             ALU_operation = (ir >> 5) & 1
 
             if ir in self.branch_table:
@@ -181,5 +196,6 @@ class CPU:
             else:
                 print('Unsupported operation')
 
-            self.PC += num_operands + 1 # +1 for opcode
+            if not PC_set:
+                self.PC += num_operands + 1 # +1 for opcode
 
