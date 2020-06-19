@@ -9,18 +9,17 @@ POP = 0b01000110
 PUSH = 0b01000101
 CALL = 0b01010000
 RET = 0b00010001
-
+JMP  = 0b01010100
+JEQ  = 0b01010101
+JNE  = 0b01010110
 ADD = 0b10100000
 SUB = 0b10100001
 MUL = 0b10100010
 DIV = 0b10100011
 MOD = 0b10100100
-
 INC = 0b01100101
 DEC = 0b01100110
-
 CMP = 0b10100111
-
 AND = 0b10101000
 NOT = 0b01101001
 OR = 0b10101010
@@ -50,18 +49,17 @@ class CPU:
             PUSH: self.push,
             CALL: self.call,
             RET: self.ret,
-
+            JMP: self.jmp,
+            JEQ: self.jeq,
+            JNE: self.jne,
             ADD: self.alu,
             SUB: self.alu,
             MUL: self.alu,
             DIV: self.alu,
             MOD: self.alu,
-
             INC: self.alu,
             DEC: self.alu,
-
             CMP: self.alu,
-
             AND: self.alu,
             NOT: self.alu,
             OR: self.alu,
@@ -95,6 +93,21 @@ class CPU:
     def ret(self, op_a=None, op_b=None):
         self.PC = self.ram_read(self.reg[SP])
         self.reg[SP] += 1
+
+    def jmp(self, op_a, op_b=None):
+        self.PC = self.reg[op_a]
+
+    def jeq(self, op_a, op_b=None):
+        if self.FL & 1:
+            self.PC = self.reg[op_a]
+        else:
+            self.PC += 2
+
+    def jne(self, op_a, op_b=None):
+        if not self.FL & 1:
+            self.PC = self.reg[op_a]
+        else:
+            self.PC += 2
 
     def ram_read(self, address):
         return self.ram[address]
@@ -161,7 +174,7 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.PC,
-            #self.fl,
+            self.FL,
             #self.ie,
             self.ram_read(self.PC),
             self.ram_read(self.PC + 1),
